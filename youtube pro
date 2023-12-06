@@ -1,0 +1,44 @@
+import os
+import requests
+from pytube import YouTube
+
+def get_proxy():
+    try:
+        # Send a request to the Proxy List service
+        response = requests.get('https://api.proxyscrape.com/?request=getproxies&proxytype=http&timeout=10000&country=all')
+
+        # Get the first proxy from the response
+        proxy = response.text.split('\n')[0]
+
+        return f'http://{proxy}'
+
+    except Exception as e:
+        print(f"An error occurred while getting the proxy: {e}")
+        return None
+
+def download_video(url, path):
+    try:
+        # Get the proxy
+        proxy = get_proxy()
+
+        if proxy is None:
+            print("Could not get a proxy")
+            return
+
+        # Set up the proxy
+        os.environ['http_proxy'] = proxy
+        os.environ['https_proxy'] = proxy
+
+        # Create a YouTube object
+        yt = YouTube(url)
+
+        # Get the highest resolution stream
+        stream = yt.streams.get_highest_resolution()
+
+        # Download the video
+        stream.download(path)
+        print(f"Video downloaded successfully")
+
+    except Exception as e:
+        print(f"An error occurred: {e}")
+
